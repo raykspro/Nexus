@@ -15,8 +15,13 @@ export function useTransactions() {
   return useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
     queryFn: () => {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        // Garante que se o dado estiver corrompido, retorne vazio em vez de travar o app
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
     },
   });
 }
@@ -33,22 +38,7 @@ export function useCreateTransaction() {
       return txWithId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-    },
-  });
-}
-
-export function useDeleteTransaction() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (data) {
-        const transactions = JSON.parse(data).filter((t: Transaction) => t.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
-      }
-    },
-    onSuccess: () => {
+      // Isso força a tela do mestre a atualizar assim que o Senhor clica em "Confirmar"
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
     },
   });
