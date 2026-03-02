@@ -15,7 +15,7 @@ export default function App() {
             <Route path="/transactions" component={Transactions} />
             <Route>
               <div className="flex items-center justify-center min-h-[50vh] text-slate-500">
-                404 - Página não encontrada, mestre.
+                Página não encontrada, mestre.
               </div>
             </Route>
           </Switch>
