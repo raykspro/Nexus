@@ -1,16 +1,70 @@
+/* Importação das fontes que o Senhor escolheu */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Poppins:wght@400;600;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    /* Paleta de Cores Nexus Finanças */
+    
+    /* Cores do Fundo e Base - Cinzas Profundos (Slate) */
+    --background: 222.2 47.4% 1.8%; /* Slate-950: Mais escuro que o anterior */
     --foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
+    --card: 222.2 84% 4.9%; /* Slate-900: Para os cards e elementos sobre o fundo */
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Cor Primária - Azul Vibrante (Sky) */
+    --primary: 199 89% 48%; /* Sky-600: Mais claro e vibrante, combinando com a logo */
+    --primary-foreground: 210 40% 98%;
+
+    /* Cor Secundária - Cinza Médio (Zinc) */
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Cores de Destaque e Estado */
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Bordas e Inputs */
+    --border: 240 3.7% 15.9%; /* Zinc-800: Para bordas mais sutis */
+    --input: 240 3.7% 15.9%;
+    --ring: 199 89% 48%; /* O anel de foco também será azul */
+
+    /* Raios de Arredondamento */
+    --radius: 1rem;
   }
 }
 
-body {
-  @apply bg-slate-950 text-slate-50 antialiased;
-  font-family: 'Inter', sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif; /* Fonte padrão mais limpa */
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif; /* Poppins para os títulos impactantes */
+  }
+}
+
+/* Utilitários de Gradiente para a Dashboard */
+@layer utilities {
+  .bg-nexus-gradient {
+    @apply bg-gradient-to-br from-slate-900 to-slate-950;
+  }
+  .text-nexus-cyan {
+    @apply text-sky-400;
+  }
+  .border-nexus-blue {
+    @apply border-sky-600;
+  }
 }
