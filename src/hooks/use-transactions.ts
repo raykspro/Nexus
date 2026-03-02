@@ -6,7 +6,7 @@ export interface Transaction {
   amount: number;
   type: "income" | "expense";
   category: string;
-  paymentMethod: string; // Novo campo
+  paymentMethod: string;
   date: string;
 }
 
@@ -32,6 +32,8 @@ export function useCreateTransaction() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...transactions, txWithId]));
       return txWithId;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/transactions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+    },
   });
 }
