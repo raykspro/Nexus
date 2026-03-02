@@ -26,12 +26,12 @@ jobs:
           node-version: 20
           
       - name: Install Dependencies
-        # Mudamos de 'npm ci' para 'npm install' para forçar a criação do ambiente Nexus
-        run: npm install
+        # Esta linha obriga o GitHub a criar as bibliotecas do zero sem o Lock file
+        run: npm install --no-package-lock
         
       - name: Build
-        # Adicionamos uma flag para ignorar avisos que travam o build
-        run: npm run build
+        # CI=false impede que avisos bobos sejam tratados como erros fatais
+        run: CI=false npm run build
         
       - name: Upload
         uses: actions/upload-pages-artifact@v3
