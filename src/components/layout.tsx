@@ -1,42 +1,38 @@
 import React from "react";
-import { LayoutDashboard, History, User } from "lucide-react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
-      {/* Header Clean */}
-      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-white font-black text-sm">N</span>
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#0F172A', fontFamily: 'sans-serif' }}>
+      {/* Header Profissional Neutro */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 40, width: '100%', backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', padding: '0 24px' }}>
+        <div style={{ maxWidth: '448px', margin: '0 auto', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', backgroundColor: '#2563EB', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyCenter: 'center', color: 'white', fontWeight: '900' }}>
+              N
             </div>
-            <h1 className="font-black italic tracking-tighter text-slate-900">
-              NEXUS <span className="text-blue-600">FINANÇAS</span>
+            <h1 style={{ fontWeight: '900', fontStyle: 'italic', letterSpacing: '-0.05em' }}>
+              NEXUS <span style={{ color: '#2563EB' }}>FINANÇAS</span>
             </h1>
           </div>
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
-      <main className="max-w-md mx-auto px-6 pt-8 pb-40">
+      {/* Área de Operações */}
+      <main style={{ maxWidth: '448px', margin: '0 auto', padding: '32px 24px 160px 24px' }}>
         {children}
       </main>
 
-      {/* Navegação Blindada (Sem links externos para evitar erro) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-8 pt-4 px-10 z-40">
-        <div className="max-w-md mx-auto flex justify-between items-center text-slate-400">
-          <div className="flex flex-col items-center gap-1">
-            <LayoutDashboard className="w-5 h-5 text-blue-600" />
-            <span className="text-[10px] font-bold uppercase text-blue-600">Painel</span>
+      {/* Barra de Navegação Estática */}
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: 'white', borderTop: '1px solid #E2E8F0', padding: '16px 40px 32px 40px', zIndex: 40 }}>
+        <div style={{ maxWidth: '448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94A3B8', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#2563EB' }}>
+            <span>Painel</span>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <History className="w-5 h-5" />
-            <span className="text-[10px] font-bold uppercase">Extrato</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span>Extrato</span>
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <User className="w-5 h-5" />
-            <span className="text-[10px] font-bold uppercase">Perfil</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span>Perfil</span>
           </div>
         </div>
       </nav>
