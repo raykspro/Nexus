@@ -1,91 +1,81 @@
 import { useTransactions, useDeleteTransaction } from "@/hooks/use-transactions";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { 
-  Utensils, 
-  Car, 
-  HeartPulse, 
+import { 
+  Utensils, 
+  Car, 
+  HeartPulse, 
   Wallet,
   Banknote,
   Coins,
   ArrowDownLeft,
-  LucideIcon
+  LucideIcon,
+  Trash2
 } from "lucide-react";
 
-// Mapeamento de ícones táticos para categorias
-const categoryConfig: Record<string, { icon: LucideIcon, color: string }> = {
-  "Alimentação": { icon: Utensils, color: "text-orange-400" },
-  "Transporte": { icon: Car, color: "text-cyan-400" },
-  "Saúde": { icon: HeartPulse, color: "text-pink-400" },
-  "Salário": { icon: Wallet, color: "text-emerald-400" },
-  "Investimento": { icon: Banknote, color: "text-blue-500" },
-  "Extra": { icon: Coins, color: "text-amber-400" },
-};
-
-// Ícones para os métodos de pagamento
-const methodIcons: Record<string, LucideIcon> = {
-  "Pix": Coins,
-  "Cartão de Crédito": Banknote,
-  "Dinheiro": Banknote,
+const categoryConfig: Record<string, { icon: LucideIcon }> = {
+  "Alimentação": { icon: Utensils },
+  "Transporte": { icon: Car },
+  "Saúde": { icon: HeartPulse },
+  "Salário": { icon: Wallet },
+  "Investimento": { icon: Banknote },
+  "Extra": { icon: Coins },
 };
 
 export default function Transactions() {
   const { data: transactions = [] } = useTransactions();
   const deleteTransaction = useDeleteTransaction();
 
-  const sorted = [...transactions].sort((a, b) => 
+  const sorted = [...transactions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
   return (
-    <div className="p-4 space-y-6 pb-24 animate-in fade-in duration-500">
-      <header className="flex justify-between items-end border-b border-slate-800 pb-4">
-        <h1 className="text-3xl font-black text-white italic tracking-tighter">HISTÓRICO</h1>
-        <span className="text-[10px] font-black text-blue-400 bg-blue-600/10 px-3 py-1 rounded-full uppercase tracking-widest">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <header className="flex justify-between items-end pb-4 border-b border-slate-200">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase">Histórico</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Registros de Operações</p>
+        </div>
+        <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-slate-200">
           {transactions.length} Itens
         </span>
       </header>
 
       <div className="space-y-3">
         {sorted.length === 0 ? (
-          <p className="text-center text-slate-600 py-10 italic uppercase font-black text-[10px]">Cofre vazio, mestre.</p>
+          <div className="bg-white border-2 border-dashed border-slate-100 rounded-[32px] py-16 text-center">
+            <p className="text-slate-300 italic uppercase font-black text-[10px] tracking-widest">Cofre vazio, mestre.</p>
+          </div>
         ) : (
           sorted.map((t) => {
-            const config = categoryConfig[t.category] || { icon: ArrowDownLeft, color: "text-slate-400" };
+            const config = categoryConfig[t.category] || { icon: ArrowDownLeft };
             const Icon = config.icon;
-            const MethodIcon = methodIcons[t.paymentMethod] || Coins;
 
             return (
-              <div key={t.id} className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex justify-between items-center group">
+              <div key={t.id} className="bg-white p-4 rounded-[24px] border border-slate-200 flex justify-between items-center shadow-sm group hover:border-slate-400 transition-all">
                 <div className="flex items-center gap-4">
-                  {/* Categoria com ícone e cor */}
-                  <div className={`p-3 rounded-2xl bg-slate-800/50 ${config.color}`}>
-                    <Icon className="w-5 h-5" />
+                  {/* Ícone em P&B Sólido */}
+                  <div className="p-3.5 rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-200">
+                    <Icon className="w-5 h-5 stroke-[2.5px]" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-100 text-sm">{t.description}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">
-                        {t.category} • {formatDate(t.date)}
-                      </p>
-                      {/* Método de pagamento com ícone sutil */}
-                      <span className="text-[9px] text-slate-600 flex items-center gap-1">
-                        <MethodIcon className="w-3 h-3" />
-                        {t.paymentMethod}
-                      </span>
-                    </div>
+                    <p className="font-bold text-slate-900 text-sm tracking-tight">{t.description}</p>
+                    <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-0.5">
+                      {t.category} • {formatDate(t.date)}
+                    </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className={`font-black text-sm tracking-tight ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-500'}`}>
+                    <p className={`font-black text-sm tracking-tighter ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
                       {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
                     </p>
-                    <button 
-                      onClick={() => confirm("Aniquilar registro?") && deleteTransaction.mutate(t.id)}
-                      className="text-rose-600 font-black text-[8px] uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    <button 
+                      onClick={() => confirm("Aniquilar registro, Mestre?") && deleteTransaction.mutate(t.id)}
+                      className="text-[9px] font-black uppercase text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-auto"
                     >
-                      Remover
+                      <Trash2 className="w-3 h-3" /> Remover
                     </button>
                   </div>
                 </div>
