@@ -1,39 +1,54 @@
 import React from "react";
+import { LayoutDashboard, History, User } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+
   return (
-    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#0F172A', fontFamily: 'sans-serif' }}>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       {/* Header Profissional Neutro */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 40, width: '100%', backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', padding: '0 24px' }}>
-        <div style={{ maxWidth: '448px', margin: '0 auto', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '36px', height: '36px', backgroundColor: '#2563EB', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyCenter: 'center', color: 'white', fontWeight: '900' }}>
-              N
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+              <span className="text-white font-black text-sm italic">N</span>
             </div>
-            <h1 style={{ fontWeight: '900', fontStyle: 'italic', letterSpacing: '-0.05em' }}>
-              NEXUS <span style={{ color: '#2563EB' }}>FINANÇAS</span>
+            <h1 className="font-black italic tracking-tighter text-slate-900 text-lg">
+              NEXUS <span className="text-blue-600">FINANÇAS</span>
             </h1>
           </div>
         </div>
       </header>
 
       {/* Área de Operações */}
-      <main style={{ maxWidth: '448px', margin: '0 auto', padding: '32px 24px 160px 24px' }}>
+      <main className="max-w-md mx-auto px-6 pt-8 pb-44">
         {children}
       </main>
 
-      {/* Barra de Navegação Estática */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: 'white', borderTop: '1px solid #E2E8F0', padding: '16px 40px 32px 40px', zIndex: 40 }}>
-        <div style={{ maxWidth: '448px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94A3B8', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#2563EB' }}>
-            <span>Painel</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span>Extrato</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span>Perfil</span>
-          </div>
+      {/* Navegação Inferior Neutra */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200/50 pb-8 pt-4 px-10 z-40">
+        <div className="max-w-md mx-auto flex justify-between items-center">
+          <Link href="/">
+            <a className={`flex flex-col items-center gap-1 transition-colors ${location === "/" ? "text-blue-600" : "text-slate-400"}`}>
+              <LayoutDashboard className="w-5 h-5 stroke-[2.5px]" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Painel</span>
+            </a>
+          </Link>
+          
+          <Link href="/transactions">
+            <a className={`flex flex-col items-center gap-1 transition-colors ${location === "/transactions" ? "text-blue-600" : "text-slate-400"}`}>
+              <History className="w-5 h-5 stroke-[2.5px]" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Extrato</span>
+            </a>
+          </Link>
+
+          <Link href="/profile">
+            <a className={`flex flex-col items-center gap-1 transition-colors ${location === "/profile" ? "text-blue-600" : "text-slate-400"}`}>
+              <User className="w-5 h-5 stroke-[2.5px]" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Perfil</span>
+            </a>
+          </Link>
         </div>
       </nav>
     </div>
