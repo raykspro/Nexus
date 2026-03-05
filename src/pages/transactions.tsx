@@ -12,12 +12,12 @@ import {
   CreditCard,
   Banknote,
   Coins,
-  ArrowUpRight,
-  ArrowDownLeft
+  ArrowDownLeft,
+  LucideIcon
 } from "lucide-react";
 
-// Mapeamento de ícones ajustado para o brilho Nexus
-const categoryConfig: Record<string, { icon: any, color: string }> = {
+// Mapeamento de ícones com tipagem LucideIcon para evitar alertas de build
+const categoryConfig: Record<string, { icon: LucideIcon, color: string }> = {
   "Alimentação": { icon: Utensils, color: "text-orange-400 bg-orange-400/10" },
   "Lazer": { icon: PartyPopper, color: "text-purple-400 bg-purple-400/10" },
   "Reservado": { icon: PiggyBank, color: "text-sky-400 bg-sky-400/10" },
@@ -30,7 +30,7 @@ const categoryConfig: Record<string, { icon: any, color: string }> = {
   "Extra": { icon: Coins, color: "text-amber-400 bg-amber-400/10" },
 };
 
-const methodIcons: Record<string, any> = {
+const methodIcons: Record<string, LucideIcon> = {
   "Pix": Coins,
   "Cartão de Crédito": CreditCard,
   "Cartão de Débito": CreditCard,
@@ -40,6 +40,7 @@ const methodIcons: Record<string, any> = {
 export default function Transactions() {
   const { data: transactions = [] } = useTransactions();
 
+  // Ordenação cronológica: do mais recente para o mais antigo
   const sortedTransactions = [...transactions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -52,7 +53,7 @@ export default function Transactions() {
           <h1 className="text-3xl font-black text-white italic tracking-tighter">HISTÓRICO</h1>
         </div>
         <span className="bg-blue-600/10 text-blue-400 border border-blue-600/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-1">
-          {transactions.length} Entradas
+          {transactions.length} Operações
         </span>
       </header>
 
