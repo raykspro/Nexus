@@ -38,10 +38,10 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-32">
       <header className="flex justify-between items-start">
         <div>
-          {/* IDENTIDADE BLOQUEADA: NEXUS SEMPRE EM AZUL */}
+          {/* IDENTIDADE REATIVA: NEXUS muda de cor, Analytics fica sóbrio */}
           <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
-            <span className="text-blue-600 dark:text-blue-500">NEXUS</span>{" "}
-            <span className="text-slate-900 dark:text-white">ANALYTICS</span>
+            <span className="text-blue-600 dark:text-white transition-colors duration-500">NEXUS</span>{" "}
+            <span className="text-slate-900 dark:text-slate-500">ANALYTICS</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Visão Geral do Império</p>
         </div>
@@ -98,19 +98,16 @@ export default function Dashboard() {
         <div className="min-h-[250px] flex items-center justify-center">
           {stats.chartData.length > 0 ? (
             viewType === "pie" ? (
-              /* GRÁFICO DE PIZZA (DONUT) EM SVG NATIVO */
               <div className="relative w-48 h-48">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                   {stats.chartData.reduce((acc, item, i) => {
                     const strokeDash = `${item.percentage} ${100 - item.percentage}`;
-                    const offset = 100 - acc.total + acc.current;
-                    acc.total += item.percentage;
                     acc.elements.push(
                       <circle
                         key={item.name}
                         cx="50" cy="50" r="40"
                         fill="transparent"
-                        stroke={["#2563eb", "#64748b", "#94a3b8", "#1e293b"][i % 4]}
+                        stroke={["#2563eb", "#64748b", "#94a3b8", "#1e293b", "#3b82f6"][i % 5]}
                         strokeWidth="12"
                         strokeDasharray={strokeDash}
                         strokeDashoffset={-acc.current}
@@ -119,7 +116,7 @@ export default function Dashboard() {
                     );
                     acc.current += item.percentage;
                     return acc;
-                  }, { elements: [] as any[], current: 0, total: 0 }).elements}
+                  }, { elements: [] as any[], current: 0 }).elements}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total</span>
@@ -127,7 +124,6 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              /* GRÁFICO DE BARRAS NATIVO */
               <div className="w-full space-y-5">
                 {stats.chartData.map((item, i) => (
                   <div key={item.name} className="space-y-1">
