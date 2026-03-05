@@ -40,9 +40,9 @@ export default function Dashboard() {
   <div>
     {/* NOVA IDENTIDADE VISUAL: Nexus sólido, Analytics Azul Fixo */}
     <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
-      <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
-      <span className="text-blue-600 Transition-colors">ANALYTICS</span>
-    </h1>
+  <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
+  <span className="text-blue-600">ANALYTICS</span>
+</h1>
     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Visão Geral do Império</p>
   </div>
 </header>
