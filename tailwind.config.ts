@@ -3,11 +3,11 @@ import tailwindAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
+  // Garantimos que o Tailwind vigie o index.html e todos os componentes na src
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // Cores base para o sistema Nexus
         border: "hsl(var(--border))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
