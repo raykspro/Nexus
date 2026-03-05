@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Exportamos a interface para que outros componentes possam usá-la como guia
 export interface Transaction {
-  id: number;
+  id: string; // Alterado para string para maior compatibilidade com IDs gerados
   description: string;
   amount: number;
   type: "income" | "expense";
@@ -14,7 +13,7 @@ export interface Transaction {
 const STORAGE_KEY = "nexus_financas_data";
 
 /**
- * Sensor de Leitura: Busca todas as transações guardadas no cofre (localStorage)
+ * Sensor de Leitura: Busca todas as transações no cofre
  */
 export function useTransactions() {
   return useQuery<Transaction[]>({
@@ -27,29 +26,51 @@ export function useTransactions() {
 }
 
 /**
- * Sensor de Escrita: Adiciona uma nova operação ao cofre
+ * Sensor de Escrita: Adiciona uma nova operação
  */
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (newTx: Omit<Transaction, "id">) => {
-      // Pequeno atraso para simular o processamento e garantir a fluidez da animação
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       
       const data = localStorage.getItem(STORAGE_KEY);
       const transactions: Transaction[] = data ? JSON.parse(data) : [];
       
       const txWithId: Transaction = { 
         ...newTx, 
-        id: Date.now() 
+        id: crypto.randomUUID() // Gera um ID único e moderno
       };
       
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...transactions, txWithId]));
       return txWithId;
     },
     onSuccess: () => {
-      // Notifica o cérebro (QueryClient) para atualizar todas as telas automaticamente
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+    },
+  });
+}
+
+/**
+ * Sensor de Purga: Remove uma operação permanentemente
+ */
+export function useDeleteTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      
+      const data = localStorage.getItem(STORAGE_KEY);
+      const transactions: Transaction[] = data ? JSON.parse(data) : [];
+      
+      const filteredTransactions = transactions.filter(t => t.id !== id);
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredTransactions));
+      return id;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
     },
   });
