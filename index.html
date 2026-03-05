@@ -17,10 +17,12 @@
   </head>
   <body class="bg-slate-950">
     <div id="root"></div>
-    <script type="module" src="src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
+    
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+          // Registro do SW ajustado para caminhos de subdiretório
           navigator.serviceWorker.register('sw.js').catch(err => console.log('Erro SW:', err));
         });
       }
