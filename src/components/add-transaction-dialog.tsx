@@ -12,21 +12,25 @@ export function AddTransactionDialog() {
     amount: "",
     category: "Alimentação",
     paymentMethod: "Pix",
-    date: new Date().toISOString().split('T')[0]
+    // Removi a data estática daqui para garantir que seja gerada no clique
   });
 
   const handleOpen = (type: "income" | "expense") => {
     setInitialType(type);
-    // Define categoria padrão inteligente ao abrir
     const defaultCat = type === "expense" ? "Alimentação" : "Salário";
-    setFormData(prev => ({ ...prev, description: "", amount: "", category: defaultCat }));
+    setFormData({ description: "", amount: "", category: defaultCat, paymentMethod: "Pix" });
     setOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ORDEM CUMPRIDA: Captura data e hora exata no momento do envio
+    const now = new Date().toISOString();
+
     createTransaction.mutate({
       ...formData,
+      date: now, // Registra o momento exato do lançamento
       type: initialType,
       amount: parseFloat(formData.amount)
     }, { onSuccess: () => setOpen(false) });
