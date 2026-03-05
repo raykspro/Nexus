@@ -37,16 +37,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-32">
       <header className="flex justify-between items-start">
-        <div>
-          {/* IDENTIDADE REATIVA: NEXUS muda de cor, Analytics fica sóbrio */}
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
-            <span className="text-blue-600 dark:text-white transition-colors duration-500">NEXUS</span>{" "}
-            <span className="text-slate-900 dark:text-slate-500">ANALYTICS</span>
-          </h1>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Visão Geral do Império</p>
-        </div>
-      </header>
-
+  <div>
+    {/* NOVA IDENTIDADE VISUAL: Nexus sólido, Analytics Azul Fixo */}
+    <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
+      <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
+      <span className="text-blue-600 Transition-colors">ANALYTICS</span>
+    </h1>
+    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Visão Geral do Império</p>
+  </div>
+</header>
       {/* Cards de Poder Financeiro */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-emerald-600/10 border border-emerald-600/20 p-5 rounded-[28px] backdrop-blur-sm">
