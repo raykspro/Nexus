@@ -9,9 +9,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-950 pb-24 text-slate-50">
       <header className="fixed top-0 left-0 right-0 bg-slate-950/80 backdrop-blur-md z-40 max-w-md mx-auto p-6 flex items-center justify-between border-b border-slate-900">
         <div className="flex items-center gap-3">
-          {/* Ajuste de precisão: Removemos a barra inicial para o Vite resolver relativo à base do repositório */}
+          {/* Sincronia de Caminho: Usamos o caminho absoluto para o repositório */}
           <img 
-            src="logo-nexus.png" 
+            src="/Nexus/logo-nexus.png" 
             className="w-10 h-10 rounded-2xl shadow-lg border border-slate-800" 
             alt="Nexus Logo" 
           />
