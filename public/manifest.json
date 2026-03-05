@@ -4,7 +4,7 @@
   "description": "Controle financeiro de mestre",
   "start_url": "/Nexus/",
   "scope": "/Nexus/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "theme_color": "#020617",
   "background_color": "#020617",
