@@ -58,9 +58,9 @@ export default function Transactions() {
   <div>
     {/* NOVA IDENTIDADE VISUAL: Nexus sólido, Extrato Azul Fixo */}
     <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
-      <span className="text-slate-900 dark:text-white Transition-colors">NEXUS</span>{" "}
-      <span className="text-blue-600 Transition-colors">EXTRATO</span>
-    </h1>
+  <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
+  <span className="text-blue-600">EXTRATO</span>
+</h1>
     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Registros de Operações</p>
   </div>
   <span className="text-[10px] font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-slate-200 dark:border-slate-700">
