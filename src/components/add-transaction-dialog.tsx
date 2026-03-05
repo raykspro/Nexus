@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useCreateTransaction } from "@/hooks/use-transactions";
 import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false);
@@ -33,15 +32,15 @@ export function AddTransactionDialog() {
   if (!open) return (
     <button 
       onClick={() => setOpen(true)}
-      className="fixed bottom-28 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 border-2 border-blue-400/20"
+      className="fixed bottom-28 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 border-2 border-blue-400/20 active:scale-95 transition-all"
     >
       <Plus className="w-8 h-8" />
     </button>
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-slate-900 w-full max-w-md rounded-[32px] border border-slate-800 p-8 space-y-6 shadow-2xl animate-in slide-in-from-bottom-10">
+    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <div className="bg-slate-900 w-full max-w-md rounded-[32px] border border-slate-800 p-6 space-y-6 shadow-2xl">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-black text-white italic">NOVO <span className="text-blue-500">LANÇAMENTO</span></h2>
           <button onClick={() => setOpen(false)} className="p-2 text-slate-500"><X /></button>
@@ -80,43 +79,36 @@ export function AddTransactionDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Categoria</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="w-full h-12 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-slate-300">
-                  {formData.category}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-slate-900 border-slate-800">
-                  {["Alimentação", "Lazer", "Transporte", "Salário", "Investimento"].map(cat => (
-                    <DropdownMenuItem key={cat} onClick={() => setFormData({ ...formData, category: cat })} className="text-slate-300 hover:bg-blue-600/20">
-                      {cat}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <select 
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full h-12 bg-slate-950 border border-slate-800 rounded-2xl px-4 text-xs font-bold text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 appearance-none"
+              >
+                {["Alimentação", "Lazer", "Transporte", "Saúde", "Salário", "Investimento", "Extra"].map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-500 uppercase ml-2">Método</label>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="w-full h-12 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-slate-300">
-                  {formData.paymentMethod}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 bg-slate-900 border-slate-800">
-                  {["Pix", "Cartão de Crédito", "Dinheiro"].map(method => (
-                    <DropdownMenuItem key={method} onClick={() => setFormData({ ...formData, paymentMethod: method })} className="text-slate-300 hover:bg-blue-600/20">
-                      {method}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <select 
+                value={formData.paymentMethod}
+                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                className="w-full h-12 bg-slate-950 border border-slate-800 rounded-2xl px-4 text-xs font-bold text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 appearance-none"
+              >
+                {["Pix", "Cartão de Crédito", "Dinheiro", "Cartão de Débito"].map(method => (
+                  <option key={method} value={method}>{method}</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <button 
             type="submit" 
-            disabled={createTransaction.isPending}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-sm transition-all shadow-lg shadow-blue-900/20"
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all"
           >
-            {createTransaction.isPending ? "Processando..." : "Confirmar Lançamento"}
+            Confirmar Lançamento
           </button>
         </form>
       </div>
