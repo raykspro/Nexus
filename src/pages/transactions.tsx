@@ -3,7 +3,7 @@ import { useTransactions, useDeleteTransaction, useCreateTransaction } from "@/h
 import { formatCurrency } from "@/lib/format";
 import { 
   Utensils, Car, HeartPulse, Wallet, Banknote, ArrowDownLeft, 
-  RefreshCcw, FileUp, Smartphone, ShoppingBag, Zap, LayoutGrid
+  RefreshCcw, FileUp, Smartphone, ShoppingBag, Zap, LayoutGrid, CreditCard
 } from "lucide-react";
 
 const categoryConfig: any = {
@@ -12,6 +12,8 @@ const categoryConfig: any = {
   "Saúde": { icon: HeartPulse, color: "bg-rose-500" },
   "Salário": { icon: Wallet, color: "bg-emerald-500" },
   "PIX": { icon: Smartphone, color: "bg-sky-600" },
+  "Débito": { icon: CreditCard, color: "bg-indigo-500" },
+  "Crédito": { icon: CreditCard, color: "bg-violet-600" },
   "Lazer": { icon: Banknote, color: "bg-purple-500" },
   "Contas": { icon: Zap, color: "bg-yellow-500" },
   "Outros": { icon: LayoutGrid, color: "bg-slate-500" },
@@ -28,19 +30,25 @@ export default function Transactions() {
     let finalDesc = rawDesc;
     let category = "Outros";
 
-    // Protocolo Mestre: PIX em CAIXA ALTA
-    if (d.includes("pix") || d.includes("transferencia")) {
+    // Protocolo de Limpeza Mestre: Débito e Crédito
+    if (d.includes("compra no débito") || d.includes("compra no debito")) {
+      category = "Débito";
+      finalDesc = rawDesc.replace(/compra no débito\s*-\s*/gi, "").replace(/compra no debito\s*-\s*/gi, "").trim();
+    } else if (d.includes("compra no crédito") || d.includes("compra no credito")) {
+      category = "Crédito";
+      finalDesc = rawDesc.replace(/compra no crédito\s*-\s*/gi, "").replace(/compra no credito\s*-\s*/gi, "").trim();
+    } else if (d.includes("pix") || d.includes("transferencia")) {
       finalDesc = rawDesc.toUpperCase();
       category = "PIX";
     }
 
-    // Filtros Inteligentes baseados na Imagem 3
-    if (/food|restaurante|pizza|burguer|belpanino|lanche|padaria/i.test(d)) category = "Alimentação";
-    else if (/uber|99|pop|posto|combustivel|shell|ipiranga/i.test(d)) category = "Transporte";
-    else if (/gold soccer|arena|game|netflix|spotify|lazer/i.test(d)) category = "Lazer";
-    else if (/farmacia|drogaria|hosp|saude/i.test(d)) category = "Saúde";
-    else if (/recebida|recebido|salario|pagamento/i.test(d)) category = "Salário";
-    else if (/luz|agua|fatura|internet|aluguel/i.test(d)) category = "Contas";
+    // Filtros de Nicho (Prioridade sobre Débito/Crédito se houver match específico)
+    const lowerFinal = finalDesc.toLowerCase();
+    if (/food|restaurante|pizza|burguer|belpanino|lanche|padaria/i.test(lowerFinal)) category = "Alimentação";
+    else if (/uber|99|pop|posto|combustivel|shell|ipiranga/i.test(lowerFinal)) category = "Transporte";
+    else if (/gold soccer|arena|game|netflix|spotify|lazer/i.test(lowerFinal)) category = "Lazer";
+    else if (/farmacia|drogaria|hosp|saude/i.test(lowerFinal)) category = "Saúde";
+    else if (/recebida|recebido|salario|pagamento/i.test(lowerFinal)) category = "Salário";
 
     return { category, finalDesc };
   };
@@ -60,7 +68,6 @@ export default function Transactions() {
         const columns = row.split(/[;,]/);
         if (columns.length < 2) return;
 
-        // Regra: Coluna 1 é Valor, última coluna é Descrição (Ignora Identificador)
         const rawValue = columns[1]?.trim() || "0";
         const rawDescription = columns[columns.length - 1]?.trim() || "Importado";
 
@@ -70,19 +77,18 @@ export default function Transactions() {
         if (isNaN(numericValue)) return;
 
         const type = numericValue < 0 ? 'expense' : 'income';
-        const amount = Math.abs(numericValue);
         const { category, finalDesc } = getCategoryAndDescription(rawDescription);
 
         createTransaction.mutate({
           description: finalDesc,
-          amount,
+          amount: Math.abs(numericValue),
           category,
           type,
           date: new Date().toISOString()
         });
         count++;
       });
-      alert(`Mestre, ${count} operações foram assimiladas.`);
+      alert(`Mestre, ${count} lançamentos foram purificados e importados.`);
     };
     reader.readAsText(file);
   };
@@ -97,7 +103,7 @@ export default function Transactions() {
             <span className="text-white">NEXUS</span>
             <span className="text-blue-600">EXTRATO</span>
           </h1>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-2">Registros do Império</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-2">Dados Purificados</p>
         </div>
         <div className="flex gap-2">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv,.txt" className="hidden" />
@@ -115,18 +121,14 @@ export default function Transactions() {
           const config = categoryConfig[t.category] || categoryConfig["Outros"];
           const Icon = config.icon;
           return (
-            <div key={t.id} className="bg-[#0f172a] p-5 rounded-[32px] border border-slate-800/50 flex justify-between items-center shadow-2xl">
+            <div key={t.id} className="bg-[#0f172a] p-5 rounded-[32px] border border-slate-800/50 flex justify-between items-center shadow-2xl transition-all">
               <div className="flex items-center gap-5">
-                <div className={`p-4 rounded-2xl ${config.color} text-white`}>
+                <div className={`p-4 rounded-2xl ${config.color} text-white shadow-inner`}>
                   <Icon className="w-6 h-6 stroke-[2.5px]" />
                 </div>
                 <div className="max-w-[200px]">
-                  <p className="font-bold text-white text-[15px] tracking-tight truncate leading-tight">{t.description}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{t.category}</p>
-                    <span className="w-1 h-1 rounded-full bg-slate-700" />
-                    <p className="text-[9px] text-slate-500 font-bold italic">Processado</p>
-                  </div>
+                  <p className="font-bold text-white text-[15px] tracking-tight truncate uppercase leading-tight">{t.description}</p>
+                  <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mt-1">{t.category}</p>
                 </div>
               </div>
               <div className="text-right">
