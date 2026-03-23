@@ -6,7 +6,6 @@ import {
   Trash2, CreditCard, Gamepad2, GraduationCap, LayoutGrid, Clock, RefreshCcw, FileUp
 } from "lucide-react";
 
-// Configuração de Ícones e Cores (Ajustado para bater com as imagens)
 const categoryConfig: any = {
   "Alimentação": { icon: Utensils, color: "text-orange-400 bg-orange-950/50" },
   "Transporte": { icon: Car, color: "text-sky-400 bg-sky-950/50" },
@@ -25,27 +24,18 @@ export default function Transactions() {
   const createTransaction = useCreateTransaction();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // INTELIGÊNCIA DE CATEGORIZAÇÃO PURIFICADA
   const getCategory = (desc: string) => {
     const d = desc.toLowerCase();
-    
-    // Regras de Ganhos
     if (/salario|recebido|recebida|provento|rendimento/i.test(d)) return "Salário";
-    
-    // Regras de Gastos Específicos
     if (/food|restaurante|pizza|burguer|lanche|comer|padaria|mercado|carrefour|ifood|99food/i.test(d)) return "Alimentação";
     if (/uber|99|pop|taxi|posto|combustivel|gasolina/i.test(d)) return "Transporte";
     if (/farmacia|drogaria|hosp|saude|unimed|odonto/i.test(d)) return "Saúde";
     if (/curso|faculdade|escola|estudos|educacao|udemy|alura/i.test(d)) return "Estudos";
-    
-    // Regras de Lazer e Fatura (Limpo para evitar falsos positivos)
     if (/fatura|pagamento fatura|cartao credito/i.test(d)) return "Fatura";
     if (/game|jogos|lazer|netflix|spotify|soccer|arena/i.test(d)) return "Lazer";
-    
-    return "Outros"; // Ex: Distribuidora, Lojas, etc.
+    return "Outros";
   };
 
-  // PROCESSADOR DE PLANILHA (Sinal +/- é o mestre)
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -59,9 +49,10 @@ export default function Transactions() {
       rows.forEach((row, index) => {
         if (index === 0 && row.toLowerCase().includes('data')) return;
         const columns = row.split(/[;,]/);
-        if (columns.length < 2) return;
+        if (columns.length < 3) return;
 
-        // Regra do Mestre: Focar na Descrição e Valor (Ignora Identificador)
+        // CAPTURA DE DATA: Coluna 0 (Ex: 24/01/2026)
+        const rawDate = columns[0]?.trim();
         const rawValue = columns[1]?.trim() || "0";
         const description = columns[columns.length - 1]?.trim() || "Importado via Planilha";
 
@@ -70,7 +61,18 @@ export default function Transactions() {
 
         if (isNaN(numericValue)) return;
 
-        // REGRA DE OURO DO SINAL: Menos (-) é Saída, sem sinal é Entrada
+        // CONVERSÃO DE DATA: Transforma DD/MM/YYYY em objeto Date válido
+        let finalDateISO = new Date().toISOString();
+        if (rawDate) {
+          const parts = rawDate.split('/');
+          if (parts.length === 3) {
+            const dateObj = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
+            if (!isNaN(dateObj.getTime())) {
+              finalDateISO = dateObj.toISOString();
+            }
+          }
+        }
+
         const type = numericValue < 0 ? 'expense' : 'income';
         const amount = Math.abs(numericValue);
         const category = getCategory(description);
@@ -80,23 +82,21 @@ export default function Transactions() {
           amount,
           category,
           type,
-          date: new Date().toISOString()
+          date: finalDateISO // Agora utiliza a data real do extrato
         });
         count++;
       });
-      alert(`Mestre, ${count} operações foram purificadas e assimiladas.`);
+      alert(`Mestre, ${count} operações foram sincronizadas temporalmente.`);
     };
     reader.readAsText(file);
   };
 
-  // FUNÇÃO DE FORMATAÇÃO DE DATA E HORA (Restaura o visual da Imagem 2)
   const formatDateTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
       return new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      }).format(date).replace(',', ' •');
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      }).format(date);
     } catch (e) { return "Data Pendente"; }
   };
 
@@ -104,13 +104,13 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-32">
-      <header className="flex justify-between items-end pb-4 border-b border-slate-200 dark:border-slate-800">
+      <header className="flex justify-between items-end pb-4 border-b border-slate-200 dark:border-slate-800 px-4">
         <div>
           <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
             <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
             <span className="text-blue-600">EXTRATO</span>
           </h1>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Registros de Operações</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Sincronização de Histórico</p>
         </div>
         <div className="flex gap-2">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" />
@@ -126,8 +126,7 @@ export default function Transactions() {
         </div>
       </header>
 
-      {/* LISTA DE TRANSAÇÕES RESTAURADA */}
-      <div className="space-y-3">
+      <div className="space-y-3 px-4">
         {sorted.length === 0 ? (
           <div className="py-20 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[32px]">
             <p className="text-slate-300 dark:text-slate-700 italic uppercase font-black text-[10px] tracking-widest">
@@ -142,14 +141,12 @@ export default function Transactions() {
             return (
               <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[24px] border border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm hover:border-blue-500/30 transition-all group">
                 <div className="flex items-center gap-4">
-                  {/* Ícone Alinhado e com Cor Própria */}
                   <div className={`p-3.5 rounded-2xl ${config.color} transition-colors`}>
                     <Icon className="w-5 h-5 stroke-[2.5px]" />
                   </div>
                   
-                  {/* Detalhes Centrais */}
                   <div className="max-w-[200px]">
-                    <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight truncate leading-tight">
+                    <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight truncate leading-tight uppercase">
                       {t.description}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -167,7 +164,6 @@ export default function Transactions() {
                   </div>
                 </div>
                 
-                {/* Valor e Ações */}
                 <div className="text-right">
                   <p className={`font-black text-[15px] tracking-tighter ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
                     {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
