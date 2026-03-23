@@ -2,20 +2,18 @@ import { useState, useRef } from "react";
 import { useTransactions, useDeleteTransaction, useCreateTransaction } from "@/hooks/use-transactions";
 import { formatCurrency } from "@/lib/format";
 import { 
-  Utensils, Car, HeartPulse, Wallet, Banknote, ArrowDownLeft, 
-  Trash2, CreditCard, Gamepad2, GraduationCap, LayoutGrid, Clock, RefreshCcw, FileUp
+  Smartphone, CreditCard, Wallet, Banknote, LayoutGrid, 
+  Clock, RefreshCcw, FileUp, Trash2
 } from "lucide-react";
 
+// Configuração focada nos Métodos de Pagamento
 const categoryConfig: any = {
-  "Alimentação": { icon: Utensils, color: "text-orange-400 bg-orange-950/50" },
-  "Transporte": { icon: Car, color: "text-sky-400 bg-sky-950/50" },
-  "Saúde": { icon: HeartPulse, color: "text-rose-400 bg-rose-950/50" },
-  "Salário": { icon: Wallet, color: "text-emerald-400 bg-emerald-950/50" },
-  "Investimento": { icon: Banknote, color: "text-purple-400 bg-purple-950/50" },
-  "Fatura": { icon: CreditCard, color: "text-slate-400 bg-slate-800/50" },
-  "Lazer": { icon: Gamepad2, color: "text-purple-400 bg-purple-950/50" },
-  "Estudos": { icon: GraduationCap, color: "text-indigo-400 bg-indigo-950/50" },
-  "Outros": { icon: LayoutGrid, color: "text-slate-500 bg-slate-800/20" },
+  "PIX": { icon: Smartphone, color: "text-sky-400 bg-sky-950/50" },
+  "DÉBITO": { icon: CreditCard, color: "text-emerald-400 bg-emerald-950/50" },
+  "CRÉDITO": { icon: CreditCard, color: "text-orange-400 bg-orange-950/50" },
+  "SALÁRIO": { icon: Wallet, color: "text-purple-400 bg-purple-950/50" },
+  "FATURA": { icon: Banknote, color: "text-rose-400 bg-rose-950/50" },
+  "OUTROS": { icon: LayoutGrid, color: "text-slate-500 bg-slate-800/20" },
 };
 
 export default function Transactions() {
@@ -24,16 +22,33 @@ export default function Transactions() {
   const createTransaction = useCreateTransaction();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getCategory = (desc: string) => {
-    const d = desc.toLowerCase();
-    if (/salario|recebido|recebida|provento|rendimento/i.test(d)) return "Salário";
-    if (/food|restaurante|pizza|burguer|lanche|comer|padaria|mercado|carrefour|ifood|99food/i.test(d)) return "Alimentação";
-    if (/uber|99|pop|taxi|posto|combustivel|gasolina/i.test(d)) return "Transporte";
-    if (/farmacia|drogaria|hosp|saude|unimed|odonto/i.test(d)) return "Saúde";
-    if (/curso|faculdade|escola|estudos|educacao|udemy|alura/i.test(d)) return "Estudos";
-    if (/fatura|pagamento fatura|cartao credito/i.test(d)) return "Fatura";
-    if (/game|jogos|lazer|netflix|spotify|soccer|arena/i.test(d)) return "Lazer";
-    return "Outros";
+  // MOTOR DE INTELIGÊNCIA: Extrai Categoria (Método) e Limpa Descrição
+  const processTransaction = (rawDesc: string) => {
+    let d = rawDesc.toLowerCase();
+    let category = "OUTROS";
+    let cleanDesc = rawDesc;
+
+    // Identificação de Métodos e Limpeza de Prefixos
+    if (d.includes("pix")) {
+      category = "PIX";
+      cleanDesc = rawDesc.replace(/Transferência (enviada|recebida) pelo Pix - /gi, "").replace(/pix/gi, "");
+    } else if (d.includes("débito") || d.includes("debito")) {
+      category = "DÉBITO";
+      cleanDesc = rawDesc.replace(/Compra no débito - /gi, "").replace(/debito/gi, "");
+    } else if (d.includes("crédito") || d.includes("credito")) {
+      category = "CRÉDITO";
+      cleanDesc = rawDesc.replace(/Compra no crédito - /gi, "").replace(/credito/gi, "");
+    } else if (d.includes("salário") || d.includes("recebido") || d.includes("recebida")) {
+      category = "SALÁRIO";
+    } else if (d.includes("fatura")) {
+      category = "FATURA";
+    }
+
+    // Limpeza final de caracteres residuais e caixa alta
+    cleanDesc = cleanDesc.replace(/^- /, "").split("-")[0].trim().toUpperCase();
+    if (!cleanDesc) cleanDesc = "OPERAÇÃO NEXUS";
+
+    return { category, cleanDesc };
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,42 +66,36 @@ export default function Transactions() {
         const columns = row.split(/[;,]/);
         if (columns.length < 3) return;
 
-        // CAPTURA DE DATA: Coluna 0 (Ex: 24/01/2026)
         const rawDate = columns[0]?.trim();
         const rawValue = columns[1]?.trim() || "0";
-        const description = columns[columns.length - 1]?.trim() || "Importado via Planilha";
+        const rawDescription = columns[columns.length - 1]?.trim() || "IMPORTADO";
 
         const numericStr = rawValue.replace(/[^\d,.-]/g, '').replace(',', '.');
         const numericValue = parseFloat(numericStr);
-
         if (isNaN(numericValue)) return;
 
-        // CONVERSÃO DE DATA: Transforma DD/MM/YYYY em objeto Date válido
         let finalDateISO = new Date().toISOString();
         if (rawDate) {
           const parts = rawDate.split('/');
           if (parts.length === 3) {
             const dateObj = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
-            if (!isNaN(dateObj.getTime())) {
-              finalDateISO = dateObj.toISOString();
-            }
+            if (!isNaN(dateObj.getTime())) finalDateISO = dateObj.toISOString();
           }
         }
 
+        const { category, cleanDesc } = processTransaction(rawDescription);
         const type = numericValue < 0 ? 'expense' : 'income';
-        const amount = Math.abs(numericValue);
-        const category = getCategory(description);
 
         createTransaction.mutate({
-          description,
-          amount,
+          description: cleanDesc,
+          amount: Math.abs(numericValue),
           category,
           type,
-          date: finalDateISO // Agora utiliza a data real do extrato
+          date: finalDateISO
         });
         count++;
       });
-      alert(`Mestre, ${count} operações foram sincronizadas temporalmente.`);
+      alert(`Mestre, ${count} operações assimiladas.`);
     };
     reader.readAsText(file);
   };
@@ -110,75 +119,59 @@ export default function Transactions() {
             <span className="text-slate-900 dark:text-white transition-colors">NEXUS</span>{" "}
             <span className="text-blue-600">EXTRATO</span>
           </h1>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Sincronização de Histórico</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1">Sincronização por Método</p>
         </div>
         <div className="flex gap-2">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" />
-          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all">
+          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-blue-600 text-white rounded-lg shadow-lg">
             <FileUp className="w-4 h-4" />
           </button>
-          <button 
-             onClick={() => confirm("Aniquilar registros, Mestre?") && transactions.forEach(t => deleteTransaction.mutate(t.id))}
-             className="p-2 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-lg hover:bg-rose-500 hover:text-white transition-all"
-          >
+          <button onClick={() => confirm("Aniquilar registros, Mestre?") && transactions.forEach(t => deleteTransaction.mutate(t.id))} className="p-2 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-lg">
             <RefreshCcw className="w-4 h-4" />
           </button>
         </div>
       </header>
 
       <div className="space-y-3 px-4">
-        {sorted.length === 0 ? (
-          <div className="py-20 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[32px]">
-            <p className="text-slate-300 dark:text-slate-700 italic uppercase font-black text-[10px] tracking-widest">
-              O banco de dados aguarda ordens, Mestre.
-            </p>
-          </div>
-        ) : (
-          sorted.map((t) => {
-            const config = categoryConfig[t.category] || categoryConfig["Outros"];
-            const Icon = config.icon;
+        {sorted.map((t) => {
+          const config = categoryConfig[t.category] || categoryConfig["OUTROS"];
+          const Icon = config.icon;
 
-            return (
-              <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[24px] border border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm hover:border-blue-500/30 transition-all group">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3.5 rounded-2xl ${config.color} transition-colors`}>
-                    <Icon className="w-5 h-5 stroke-[2.5px]" />
-                  </div>
-                  
-                  <div className="max-w-[200px]">
-                    <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight truncate leading-tight uppercase">
-                      {t.description}
+          return (
+            <div key={t.id} className="bg-white dark:bg-slate-900 p-4 rounded-[24px] border border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm group">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className={`p-3.5 rounded-2xl ${config.color} flex-shrink-0`}>
+                  <Icon className="w-5 h-5 stroke-[2.5px]" />
+                </div>
+                
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight truncate uppercase leading-tight">
+                    {t.description}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className={`text-[9px] uppercase font-black tracking-widest ${config.color.split(' ')[0]}`}>
+                      {t.category}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                       <p className={`text-[9px] uppercase font-black tracking-widest ${config.color.split(' ')[0]}`}>
-                        {t.category}
-                      </p>
-                      <span className="text-slate-300 dark:text-slate-700">•</span>
-                      <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
-                        <Clock className="w-2.5 h-2.5" />
-                        <p className="text-[9px] uppercase font-black tracking-widest">
-                          {formatDateTime(t.date)}
-                        </p>
-                      </div>
+                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
+                      <Clock className="w-2.5 h-2.5" />
+                      <p className="text-[9px] uppercase font-black tracking-widest">{formatDateTime(t.date)}</p>
                     </div>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <p className={`font-black text-[15px] tracking-tighter ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                    {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
-                  </p>
-                  <button 
-                    onClick={() => deleteTransaction.mutate(t.id)}
-                    className="text-[9px] font-bold text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-auto"
-                  >
-                    <Trash2 className="w-3 h-3" /> Remover
-                  </button>
-                </div>
               </div>
-            );
-          })
-        )}
+              
+              <div className="text-right flex-shrink-0 ml-4">
+                <p className={`font-black text-[15px] tracking-tighter ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
+                  {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
+                </p>
+                <button onClick={() => deleteTransaction.mutate(t.id)} className="text-[9px] font-bold text-rose-500 opacity-0 group-hover:opacity-100 flex items-center gap-1 ml-auto">
+                  <Trash2 className="w-3 h-3" /> Remover
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
