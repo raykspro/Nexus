@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
 import { useTransactions } from "@/hooks/use-transactions";
-import { TrendingUp, Wallet, ArrowDownCircle, PieChart as PieIcon, BarChart3, Calendar } from "lucide-react";
+import { TrendingUp, PieChart as PieIcon, BarChart3, Calendar } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
-// Importação dos componentes de gráfico robustos
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 
-// Função para renderizar a fatia ativa com destaque e texto central
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
   return (
@@ -13,18 +11,10 @@ const renderActiveShape = (props: any) => {
       <text x={cx} y={cy - 8} textAnchor="middle" fill="#94a3b8" className="text-[10px] font-black uppercase tracking-[0.2em]">
         {payload.name}
       </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fill="white" className="text-xs font-black italic tracking-tighter">
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="white" className="text-sm font-black italic tracking-tighter">
         {formatCurrency(value)}
       </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 4}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
+      <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} />
     </g>
   );
 };
@@ -36,7 +26,7 @@ export default function Dashboard() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear] = useState(new Date().getFullYear());
 
   const stats = useMemo(() => {
     let totalExpenses = 0;
@@ -49,8 +39,10 @@ export default function Dashboard() {
     });
 
     filtered.forEach(t => {
-      const amount = Number(t.amount);
-      if (t.type === 'expense' || t.type === 'despesa') {
+      const amount = Math.abs(Number(t.amount));
+      const type = t.type.toLowerCase();
+      
+      if (type === 'expense' || type === 'despesa') {
         totalExpenses += amount;
         if (filter === 'expense') categoryData[t.category] = (categoryData[t.category] || 0) + amount;
       } else {
@@ -64,18 +56,19 @@ export default function Dashboard() {
         { name: "Entradas", value: totalIncomes, color: "#10b981" },
         { name: "Saídas", value: totalExpenses, color: "#ef4444" }
       ].filter(item => item.value > 0);
-      return { chartData, totalExpenses, totalIncomes, displayTotal: totalIncomes - totalExpenses };
+      return { chartData, totalExpenses, totalIncomes, balance: totalIncomes - totalExpenses };
     }
 
-    const currentTotal = filter === 'expense' ? totalExpenses : totalIncomes;
     const chartData = Object.entries(categoryData).map(([name, value]) => ({
       name,
       value,
       color: filter === 'expense' ? "#3b82f6" : "#10b981",
     })).sort((a, b) => b.value - a.value);
 
-    return { chartData, totalExpenses, totalIncomes, displayTotal: currentTotal };
+    return { chartData, totalExpenses, totalIncomes, balance: totalIncomes - totalExpenses };
   }, [transactions, filter, selectedMonth, selectedYear]);
+
+  const totalForProgress = stats.chartData.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-32 px-4 bg-slate-950 min-h-screen text-slate-200">
@@ -102,7 +95,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* CARDS DE RESUMO */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-[28px]">
           <span className="text-[8px] font-black uppercase text-emerald-500 tracking-widest block mb-1">Entradas</span>
@@ -114,8 +106,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <section className="bg-slate-900 p-6 rounded-[32px] border border-slate-800 shadow-2xl">
-        <div className="flex items-center justify-between mb-8">
+      <section className="bg-slate-900 p-6 rounded-[32px] border border-slate-800 shadow-2xl relative overflow-hidden">
+        <div className="flex items-center justify-between mb-8 relative z-10">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-blue-600" />
             <h2 className="text-[10px] font-black uppercase tracking-widest text-white">
@@ -128,8 +120,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* SELETOR DE FILTRO */}
-        <div className="flex gap-2 justify-center mb-8">
+        <div className="flex gap-2 justify-center mb-8 relative z-10">
           {['all', 'expense', 'income'].map((opt) => (
             <button
               key={opt}
@@ -143,8 +134,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ÁREA DO GRÁFICO */}
-        <div className="h-[300px] w-full flex items-center justify-center">
+        <div className="h-[300px] w-full flex items-center justify-center relative z-10">
           {stats.chartData.length > 0 ? (
             viewType === "pie" ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -153,35 +143,36 @@ export default function Dashboard() {
                     activeIndex={activeIndex ?? undefined}
                     activeShape={renderActiveShape}
                     data={stats.chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={75}
-                    outerRadius={95}
-                    dataKey="value"
+                    cx="50%" cy="50%" innerRadius={75} outerRadius={95} dataKey="value"
                     onMouseEnter={(_, index) => setActiveIndex(index)}
-                    onClick={(_, index) => setActiveIndex(index)}
                     onMouseLeave={() => setActiveIndex(null)}
-                    stroke="none"
-                    paddingAngle={filter === 'all' ? 2 : 5}
+                    stroke="none" paddingAngle={4}
                   >
                     {stats.chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} className="outline-none" />
                     ))}
                   </Pie>
+                  {activeIndex === null && (
+                    <g>
+                      <text x="50%" y="48%" textAnchor="middle" fill="#64748b" className="text-[8px] font-black uppercase tracking-[0.3em]">Saldo</text>
+                      <text x="50%" y="56%" textAnchor="middle" fill="white" className="text-lg font-black italic">{formatCurrency(stats.balance)}</text>
+                    </g>
+                  )}
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="w-full space-y-5 px-2">
+              <div className="w-full space-y-5 px-2 overflow-y-auto max-h-[280px]">
                 {stats.chartData.map((item) => (
                   <div key={item.name} className="group">
                     <div className="flex justify-between text-[10px] font-black uppercase mb-1.5">
                       <span className="text-slate-500 group-hover:text-blue-400 transition-colors">{item.name}</span>
                       <span className="text-white">{formatCurrency(item.value)}</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out" 
+                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-1000 ease-out" 
                         style={{ 
-                          width: `${(item.value / stats.chartData.reduce((a,b) => a + b.value, 0)) * 100}%`, 
+                          width: `${totalForProgress > 0 ? (item.value / totalForProgress) * 100 : 0}%`, 
                           backgroundColor: item.color 
                         }} 
                       />
@@ -191,7 +182,9 @@ export default function Dashboard() {
               </div>
             )
           ) : (
-            <p className="text-[10px] font-black uppercase text-slate-600 italic tracking-widest">O banco de dados está vazio, Mestre.</p>
+            <div className="text-center">
+              <p className="text-[10px] font-black uppercase text-slate-600 italic tracking-widest">Sem dados para este período, Mestre.</p>
+            </div>
           )}
         </div>
       </section>
