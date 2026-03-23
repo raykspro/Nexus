@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react"; // Adicionado useMemo para performance
+import { useState, useRef, useMemo } from "react";
 import { useTransactions, useDeleteTransaction, useUpdateTransaction, useCreateTransaction } from "@/hooks/use-transactions";
 import { formatCurrency } from "@/lib/format";
 import { 
