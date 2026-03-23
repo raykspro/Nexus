@@ -3,10 +3,9 @@ import { useTransactions, useDeleteTransaction, useUpdateTransaction, useCreateT
 import { formatCurrency } from "@/lib/format";
 import { 
   Utensils, Car, HeartPulse, Wallet, CreditCard, 
-  Gamepad2, GraduationCap, LayoutGrid, FileUp, Trash2, X, Eye 
+  Gamepad2, GraduationCap, LayoutGrid, FileUp, Trash2, X, Eye, Pencil, Check
 } from "lucide-react";
 
-// Blindagem de Tipagem para o Mestre
 interface Transaction {
   id: string;
   description: string;
@@ -36,66 +35,15 @@ export default function Transactions() {
 
   const [inspectingId, setInspectingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<string | null>(null);
 
-  // MOTOR HÍBRIDO OTIMIZADO
-  const getCategoryAndMethod = (rawDesc: string) => {
-    const d = rawDesc.toLowerCase();
-    let category = "Outros";
-    if (/salario|recebido|recebida|provento/i.test(d)) category = "Salário";
-    else if (/food|restaurante|pizza|burguer|lanche|padaria|mercado|carrefour|ifood/i.test(d)) category = "Alimentação";
-    else if (/uber|99|pop|taxi|posto|combustivel|gasolina/i.test(d)) category = "Transporte";
-    else if (/farmacia|drogaria|hosp|saude|unimed|odonto/i.test(d)) category = "Saúde";
-    else if (/fatura|pagamento fatura/i.test(d)) category = "Fatura";
-    else if (/game|jogos|lazer|netflix|spotify|soccer|arena/i.test(d)) category = "Lazer";
-    else if (/curso|faculdade|escola|estudos/i.test(d)) category = "Estudos";
-
-    return { category };
-  };
-
-  const cleanDescription = (rawDesc: string) => {
-    return rawDesc
-      .replace(/Transferência (enviada|recebida) pelo Pix - /gi, "")
-      .replace(/Compra no (débito|crédito) - /gi, "")
-      .split("-")[0].trim().toUpperCase();
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const rows = text.split('\n');
-      rows.forEach((row, index) => {
-        if (index === 0 || !row.trim()) return;
-        const columns = row.split(/[;,]/);
-        if (columns.length < 2) return;
-        
-        const rawDesc = columns[columns.length - 1];
-        const { category } = getCategoryAndMethod(rawDesc);
-        const amountStr = columns[1].replace(/[^\d,.-]/g, '').replace(',', '.');
-        const amount = Math.abs(parseFloat(amountStr));
-        
-        createTransaction.mutate({
-          description: cleanDescription(rawDesc),
-          amount,
-          category,
-          type: parseFloat(amountStr) < 0 ? 'expense' : 'income',
-          date: new Date().toISOString()
-        });
-      });
-    };
-    reader.readAsText(file);
-  };
-
-  // Ordenação memorizada para evitar re-renders pesados
   const sorted = useMemo(() => 
-    [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    ([...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())),
   [transactions]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-32 px-4">
-      <header className="flex justify-between items-end pb-4 border-b border-slate-800">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-32 px-4 bg-slate-950 min-h-screen">
+      <header className="flex justify-between items-end pb-4 border-b border-slate-800 pt-8">
         <div>
           <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none text-white">
             NEXUS <span className="text-blue-600">EXTRATO</span>
@@ -103,9 +51,9 @@ export default function Transactions() {
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Gestão de Comandos</p>
         </div>
         <div className="flex gap-2">
-          <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv" className="hidden" />
-          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors">
-            <FileUp className="w-4 h-4" />
+          <input type="file" ref={fileInputRef} onChange={() => {}} accept=".csv" className="hidden" />
+          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-slate-900 border border-slate-800 text-blue-500 rounded-xl hover:bg-slate-800 transition-all">
+            <FileUp className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -115,66 +63,104 @@ export default function Transactions() {
           const config = categoryConfig[t.category] || categoryConfig["Outros"];
           const Icon = config.icon;
           const isInspecting = inspectingId === t.id;
+          const editingThis = isEditing === t.id;
 
           return (
-            <div key={t.id} className={`bg-slate-900/50 p-4 rounded-[24px] border transition-all duration-300 ${isInspecting ? 'border-blue-500 shadow-2xl scale-[1.02]' : 'border-slate-800'}`}>
-              <div className="flex justify-between items-center cursor-pointer" onClick={() => setInspectingId(isInspecting ? null : t.id)}>
+            <div key={t.id} className={`bg-slate-900/40 p-4 rounded-[28px] border transition-all duration-500 ${isInspecting ? 'border-blue-600/50 bg-slate-900 shadow-2xl scale-[1.02]' : 'border-slate-800'}`}>
+              <div className="flex justify-between items-center cursor-pointer" onClick={() => { setInspectingId(isInspecting ? null : t.id); setIsEditing(null); }}>
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className={`p-3.5 rounded-2xl ${config.color} flex-shrink-0`}>
+                  <div className={`p-3.5 rounded-2xl ${config.color} flex-shrink-0 shadow-inner`}>
                     <Icon className="w-5 h-5 stroke-[2.5px]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-white text-sm tracking-tight truncate uppercase leading-tight">
+                    <p className="font-bold text-white text-sm tracking-tight truncate uppercase">
                       {t.description}
                     </p>
-                    <p className={`text-[9px] uppercase font-black tracking-widest ${config.color.split(' ')[0]}`}>{t.category}</p>
+                    <p className={`text-[9px] uppercase font-black tracking-widest opacity-70`}>{t.category}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <p className={`font-black text-[15px] tracking-tighter ${t.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
+                  <p className={`font-black text-[15px] italic tracking-tighter ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-200'}`}>
                     {t.type === 'expense' ? '- ' : '+ '}{formatCurrency(t.amount)}
                   </p>
-                  <Eye className={`w-4 h-4 transition-colors ${isInspecting ? 'text-blue-500' : 'text-slate-600'}`} />
+                  <Eye className={`w-4 h-4 transition-all ${isInspecting ? 'text-blue-500 scale-110' : 'text-slate-700'}`} />
                 </div>
               </div>
 
               {isInspecting && (
-                <div className="mt-4 pt-4 border-t border-slate-800 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-1">
-                    <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Descrição</label>
-                    <input 
-                      className="bg-slate-950 border border-slate-800 rounded-lg w-full p-3 text-xs text-white font-bold uppercase focus:border-blue-600 outline-none"
-                      defaultValue={t.description}
-                      onBlur={(e) => {
-                        if (e.target.value.toUpperCase() !== t.description) {
-                           updateTransaction.mutate({ ...t, description: e.target.value.toUpperCase() });
-                        }
-                      }}
-                    />
+                <div className="mt-5 pt-5 border-t border-slate-800/50 space-y-5 animate-in slide-in-from-top-4 duration-300">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">Identificação do Lançamento</label>
+                      {!editingThis && (
+                        <button onClick={(e) => { e.stopPropagation(); setIsEditing(t.id); }} className="text-blue-500 hover:text-blue-400 transition-colors">
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {editingThis ? (
+                      <div className="flex gap-2">
+                        <input 
+                          autoFocus
+                          className="bg-slate-950 border border-blue-600/50 rounded-xl w-full p-3 text-xs text-white font-bold uppercase outline-none shadow-[0_0_15px_rgba(37,99,235,0.1)]"
+                          defaultValue={t.description}
+                          id={`input-${t.id}`}
+                        />
+                        <button 
+                          onClick={() => {
+                            const val = (document.getElementById(`input-${t.id}`) as HTMLInputElement).value;
+                            updateTransaction.mutate({ ...t, description: val.toUpperCase() });
+                            setIsEditing(null);
+                          }}
+                          className="p-3 bg-emerald-600 text-white rounded-xl"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-200 font-bold uppercase bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 italic">
+                        {t.description}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Categoria</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">Classificação</label>
                       <select 
-                        className="bg-slate-950 border border-slate-800 rounded-lg w-full p-2 text-[10px] text-white font-bold outline-none"
+                        className="bg-slate-950 border border-slate-800 rounded-xl w-full p-3 text-[10px] text-white font-black uppercase outline-none appearance-none cursor-pointer"
                         value={t.category}
                         onChange={(e) => updateTransaction.mutate({ ...t, category: e.target.value })}
                       >
                         {Object.keys(categoryConfig).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
                     </div>
+
                     <div className="flex items-end justify-end gap-2">
                       {confirmDelete === t.id ? (
-                        <div className="flex gap-2 animate-in zoom-in">
-                          <button onClick={() => { deleteTransaction.mutate(t.id); setInspectingId(null); }} className="px-3 py-2 bg-rose-500 text-white rounded-lg text-[9px] font-black">CONFIRMAR?</button>
-                          <button onClick={() => setConfirmDelete(null)} className="p-2 bg-slate-800 text-white rounded-lg"><X className="w-3 h-3" /></button>
+                        <div className="flex gap-2 animate-in zoom-in duration-200 w-full">
+                          <button 
+                            onClick={() => { deleteTransaction.mutate(t.id); setInspectingId(null); }} 
+                            className="flex-1 py-3 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-tighter"
+                          >
+                            CONFIRMAR EXCLUSÃO
+                          </button>
+                          <button onClick={() => setConfirmDelete(null)} className="p-3 bg-slate-800 text-white rounded-xl">
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       ) : (
-                        <button onClick={() => setConfirmDelete(t.id)} className="p-2 bg-rose-500/10 text-rose-500 rounded-lg hover:bg-rose-500/20"><Trash2 className="w-4 h-4" /></button>
+                        <>
+                          <button onClick={() => setConfirmDelete(t.id)} className="p-3 bg-rose-500/10 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => setInspectingId(null)} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 shadow-lg shadow-blue-600/20">
+                            CONCLUÍDO
+                          </button>
+                        </>
                       )}
-                      <button onClick={() => setInspectingId(null)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-black text-[9px] hover:bg-blue-500">FECHAR</button>
                     </div>
                   </div>
                 </div>
